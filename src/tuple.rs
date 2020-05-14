@@ -100,6 +100,38 @@ impl Tuple {
     pub fn vector(x: f64, y: f64, z: f64) -> Self {
         Self {x, y, z, w: 0.0}
     }
+
+    pub fn mag(&self) -> f64 {
+        (self.x.powi(2) +
+         self.y.powi(2) +
+         self.z.powi(2) +
+         self.w.powi(2)).sqrt()
+    }
+
+    pub fn norm(&self) -> Self {
+        let mag = self.mag();
+        Self {
+            x: self.x / mag,
+            y: self.y / mag,
+            z: self.z / mag,
+            w: self.w / mag,
+        }
+    }
+
+    pub fn dot(&self, cmp: &Self) -> f64 {
+        (self.x * cmp.x) +
+        (self.y * cmp.y) +
+        (self.z * cmp.z) +
+        (self.w * cmp.w)
+    }
+
+    pub fn cross(&self, cmp: &Self) -> Self {
+        Self::vector(
+            self.y * cmp.z - self.z * cmp.y,
+            self.z * cmp.x - self.x * cmp.z,
+            self.x * cmp.y - self.y * cmp.x,
+        )
+    }
 }
 
 #[cfg(test)]
@@ -219,5 +251,77 @@ mod test {
         let expected = Tuple { x: 0.5, y: -1., z: 1.5, w: -2.};
         let actual = a / 2.;
         assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn compute_magnitude_unit_x() {
+        let v = Tuple::vector(1., 0., 0.);
+        assert_eq!(v.mag(), 1.);
+    }
+
+    #[test]
+    fn compute_magnitude_unit_y() {
+        let v = Tuple::vector(0., 1., 0.);
+        assert_eq!(v.mag(), 1.);
+    }
+
+    #[test]
+    fn compute_magnitude_unit_z() {
+        let v = Tuple::vector(0., 0., 1.);
+        assert_eq!(v.mag(), 1.);
+    }
+
+    #[test]
+    fn compute_magnitude_of_vector() {
+        let v = Tuple::vector(1., 2., 3.);
+        assert_eq!(v.mag(), 14.0_f64.sqrt());
+    }
+
+    #[test]
+    fn compute_magnitude_of_neg_vector() {
+        let v = Tuple::vector(-1., -2., -3.);
+        assert_eq!(v.mag(), 14.0_f64.sqrt());
+    }
+
+    #[test]
+    fn normalizing_vector_1() {
+        let v = Tuple::vector(4., 0., 0.,);
+        let expected = Tuple::vector(1., 0., 0.,);
+        assert_eq!(v.norm(), expected);
+    }
+
+    #[test]
+    fn normalizing_vector_2() {
+        let v = Tuple::vector(1., 2., 3.,);
+        let expected = Tuple::vector(
+            1. / 14.0_f64.sqrt(),
+            2. / 14.0_f64.sqrt(),
+            3. / 14.0_f64.sqrt()
+        );
+        assert_eq!(v.norm(), expected);
+    }
+
+    #[test]
+    fn mag_of_norm_vector() {
+        let v = Tuple::vector(1., 2., 3.);
+        let norm = v.norm();
+        assert_eq!(norm.mag(), 1.);
+    }
+
+    #[test]
+    fn dot_product_of_tuples() {
+        let a = Tuple::vector(1., 2., 3.);
+        let b = Tuple::vector(2., 3., 4.);
+        assert_eq!(a.dot(&b), 20.);
+    }
+
+    #[test]
+    fn cross_product_of_vectors() {
+        let a = Tuple::vector(1., 2., 3.);
+        let b = Tuple::vector(2., 3., 4.);
+        let expected_a_b = Tuple::vector(-1., 2., -1.);
+        let expected_b_a = Tuple::vector(1., -2., 1.);
+        assert_eq!(a.cross(&b), expected_a_b);
+        assert_eq!(b.cross(&a), expected_b_a);
     }
 }
